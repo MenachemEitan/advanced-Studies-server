@@ -32,7 +32,7 @@ app.use((req, res, next)=>{
         req.user = user;
         next();
     }catch(err){
-        return res.not(ErrNotAuth())
+        next()
     }
 })
 

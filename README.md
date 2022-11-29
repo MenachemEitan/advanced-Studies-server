@@ -1,6 +1,6 @@
 # advanced-Studies-server
 
-the regulations that are required :
+Libraries that need to be installed :
 
 
 npm i express

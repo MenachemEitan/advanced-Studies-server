@@ -1,7 +1,8 @@
 const express = require('express');
 const app = express();
-const {okResponse, CreatedRes} = require('./lib/ResponseHandler')
+const {okResponse, CreatedRes, ErrNotAuth} = require('./lib/ResponseHandler')
 const cors = require('cors');
+const {jwtVerify} = require('./lib/JWT')
 
 app.use(express.json())
 
@@ -23,6 +24,18 @@ app.use((rew, res, next) =>{
 app.use(cors({
     origin:'http://localhost:3000'
 }))
+
+app.use((req, res, next)=>{
+    const accessToken = req.headers.authorization;
+    try{
+        const user = jwtVerify(accessToken)
+        req.user = user;
+        next();
+    }catch(err){
+        return res.not(ErrNotAuth())
+    }
+})
+
 
 
 app.use('/users', require('./Routs/users.routs'))

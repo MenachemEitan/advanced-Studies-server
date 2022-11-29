@@ -8,3 +8,5 @@ npm i express
 npm i router
 
 npm i cors
+
+npm i jsonwebtoken

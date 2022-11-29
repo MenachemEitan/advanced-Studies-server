@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const {okResponse, CreatedRes} = require('./lib/ResponseHandler')
+const cors = require('cors');
 
 app.use(express.json())
 
@@ -18,6 +19,15 @@ app.use((rew, res, next) =>{
     }
     next()
 })
+
+app.use(cors({
+    origin:'http://localhost:3000'
+}))
+
+
+app.use('/users', require('./Routs/users.routs'))
+app.use('/class', require('./Routs/class.routs'))
+
 
 
 

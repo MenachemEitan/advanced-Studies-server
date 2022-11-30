@@ -4,20 +4,39 @@
         "lastName": "eitanv",
         "email": "menadsvfh2g@gmail.com",
         "password": 2222222234,
-        "id": 1669802811295
+        "id": 1669802811295,
+        "myClass": {}
     },
     {
         "firstName": "menahemv",
         "lastName": "eitanv",
         "email": "menadsvfh2gd@gmail.com",
         "password": 2222222234,
-        "id": 1669803050362
+        "id": 1669803050362,
+        "myClass": {}
     },
     {
         "firstName": "menahemv",
         "lastName": "eitanv",
         "email": "menadvsvfh2gd@gmail.com",
         "password": 2222222234,
-        "id": 1669803196501
+        "id": 1669803196501,
+        "myClass": {
+            "1669810790939": [
+                1669812345182
+            ]
+        }
+    },
+    {
+        "firstName": "menahemv",
+        "lastName": "eitanv",
+        "email": "menadvscvfh2gd@gmail.com",
+        "password": 333333333333,
+        "myClass": {
+            "1669810790939": [
+                1669812345182
+            ]
+        },
+        "id": 1669834658903
     }
 ]

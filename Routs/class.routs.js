@@ -5,6 +5,7 @@ const DB = require('../lib/dbControler');
 const question = new DB('question');
 const classes = new DB('class');
 const field = new DB('field')
+const users = new DB('users')
 const class_rathing = new DB('class_reathing')
 const { ErrItemAlreadyExists, ErrItemDoesntExist } = require('../lib/ResponseHandler')
 
@@ -70,7 +71,7 @@ route.get('/question/:id', (req, res, next) => {
 })
 
 route.get('/popularClass/get', (req, res, next) => {
-    const temp = class_rathing.get()[0]
+    const temp = class_rathing.get()
 
     var items = Object.keys(temp).map(function (key) {
         return [key, temp[key]];
@@ -84,6 +85,25 @@ route.get('/popularClass/get', (req, res, next) => {
     tempList.forEach(element =>returnVal.push(classes.getById(parseInt(element[0]))) )
     return res.ok(returnVal)
 })
+
+route.post('/login/startCoutse', (req, res, next)=>{
+    const {classId} = req.body;
+    const user = users.getById(req.user)
+    if(!user.myClass[classId]){
+        let classRathing = class_rathing.get();
+        console.log("classId ", classId);
+        classRathing[classId] ++;
+        user.myClass[classId]=[]
+        users.updateItem(user.id, user);
+        class_rathing.create(classRathing);
+        return res.ok(classes.getById(classId))
+    } else{
+        const theClass = classes.getById(classId);
+        return res.ok([theClass,user.myClass[classId] ])
+    }
+})
+
+
 
 
 

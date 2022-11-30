@@ -1,18 +1,1 @@
-[
-    {
-        "className": "Behavioral psychology1.2",
-        "id": 1669810703719,
-        "question": [
-            1669812378881,
-            1669812411295
-        ]
-    },
-    {
-        "className": "Behavioral psychology1.1",
-        "id": 1669810790939,
-        "question": [
-            1669812345182,
-            1669812351640
-        ]
-    }
-]
+[{"className":"Behavioral psychology1.2","id":1669810703719,"question":[1669812378881,1669812411295]},{"className":"Behavioral psychology1.1","id":1669810790939,"question":[1669812345182,1669812351640]},{"className":"algebra","id":1669822146056},{"className":"geometry","id":1669822165599},{"className":"mechanics","id":1669822266827},{"className":"electric","id":1669822283184}]

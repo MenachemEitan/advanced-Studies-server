@@ -1,0 +1,30 @@
+[
+    {
+        "fieldName": "math",
+        "id": 1669808531344
+    },
+    {
+        "fieldName": "physics",
+        "id": 1669808837993
+    },
+    {
+        "fieldName": "chemistry",
+        "id": 1669808859202
+    },
+    {
+        "fieldName": "Computer Science",
+        "id": 1669808996916
+    },
+    {
+        "fieldName": "Environment studies",
+        "id": 1669809135808
+    },
+    {
+        "fieldName": "psychology",
+        "id": 1669810130302,
+        "class": [
+            1669810703719,
+            1669810790939
+        ]
+    }
+]

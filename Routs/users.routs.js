@@ -1,7 +1,7 @@
 const express = require('express');
 const DB = require('../lib/dbControler');
 const { jwtSing } = require('../lib/JWT');
-const { ErrUserAlreadyExists,ErrWrongPass,ErrUserDoesntExist  } = require('../lib/ResponseHandler');
+const { ErrItemAlreadyExists,ErrWrongPass,ErrUserDoesntExist  } = require('../lib/ResponseHandler');
 const route = express.Router();
 const app = express();
 const users = new DB('users');
@@ -16,7 +16,8 @@ route.post('/login', validator(logInSchema), (req, res, next)=>{
         return res.not(ErrUserDoesntExist())
     }else{
         if(existsUser.password===user.password){
-            return res.ok(jwtSing(existsUser.id))
+            delete existsUser.password;
+            return res.ok([jwtSing(existsUser.id), existsUser])
         }else{
             return res.not(ErrWrongPass())
         }
@@ -28,9 +29,10 @@ route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
     const existsUser = users.getByEmail(user.email);
     if(!existsUser){
         temp = users.addItem(user)
-        return res.ok(jwtSing(temp.id))
+        delete temp.password;
+        return res.ok([jwtSing(temp.id), temp])
     }else{
-        return res.not(ErrUserAlreadyExists())
+        return res.not(ErrItemAlreadyExists("user"))
     }
     
  })

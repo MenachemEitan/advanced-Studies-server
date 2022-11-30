@@ -1,7 +1,7 @@
 const express = require('express');
 const DB = require('../lib/dbControler');
 const { jwtSing } = require('../lib/JWT');
-const { ErrItemAlreadyExists,ErrWrongPass,ErrUserDoesntExist  } = require('../lib/ResponseHandler');
+const { ErrItemAlreadyExists,ErrWrongPass,ErrItemDoesntExist  } = require('../lib/ResponseHandler');
 const route = express.Router();
 const app = express();
 const users = new DB('users');
@@ -13,7 +13,7 @@ route.post('/login', validator(logInSchema), (req, res, next)=>{
     const user = req.body;
     const existsUser = users.getByEmail(user.email);
     if(!existsUser){
-        return res.not(ErrUserDoesntExist())
+        return res.not(ErrItemDoesntExist("user"))
     }else{
         if(existsUser.password===user.password){
             delete existsUser.password;

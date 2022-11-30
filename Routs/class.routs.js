@@ -5,17 +5,17 @@ const DB = require('../lib/dbControler');
 const question = new DB('question');
 const classes = new DB('class');
 const field = new DB('field')
-const {ErrItemAlreadyExists} = require('../lib/ResponseHandler')
+const {ErrItemAlreadyExists, ErrItemDoesntExist} = require('../lib/ResponseHandler')
 
 
 route.post('/addfield',(req, res, next) =>{
     const {fieldName} = req.body;
     const existsField = field.getByFieldName(fieldName);
     if (!existsField){
-        res.ok(field.addItem(req.body))
-    }else(
-        res.not(ErrItemAlreadyExists("field"))
-    )
+       return res.ok(field.addItem(req.body))
+    }else
+        return res.not(ErrItemAlreadyExists("field"))
+
 })
 
 route.post('/addclass/:fieldName',(req, res, next) =>{
@@ -31,10 +31,9 @@ route.post('/addclass/:fieldName',(req, res, next) =>{
         }
         field.updateItem(tempField.id,tempField )
         
-        res.ok(tempClass)
-    }else(
-        res.not(ErrItemAlreadyExists("class"))
-    )
+        return res.ok(tempClass)
+    }else
+        return res.not(ErrItemAlreadyExists("class"))
 })
 
 route.post('/addquestion/:className',(req, res, next) =>{
@@ -47,8 +46,28 @@ route.post('/addquestion/:className',(req, res, next) =>{
         tempClass.question = [...tempClass.question,tempQuestion.id]
     }
     classes.updateItem(tempClass.id, tempClass)
-    res.ok(tempQuestion)
+    return res.ok(tempQuestion)
 })
+
+
+route.get('/:id', (req, res, next)=>{
+    const classId = req.params.id;
+    tempClass = classes.getById(classId)
+    if(tempClass){
+        return res.ok(tempClass)
+    }else
+    return res.not(ErrItemDoesntExist('class'))
+})
+
+route.get('/question/:id', (req, res, next)=>{
+    const questionId = req.params.id;
+    tempQuestion = question.getById(questionId)
+    if(tempQuestion){
+        return res.ok(tempQuestion)
+    }else
+    return res.not(ErrItemDoesntExist('Question'))
+})
+
 
 
 

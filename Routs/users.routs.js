@@ -4,10 +4,12 @@ const { jwtSing } = require('../lib/JWT');
 const { ErrUserAlreadyExists,ErrWrongPass,ErrUserDoesntExist  } = require('../lib/ResponseHandler');
 const route = express.Router();
 const app = express();
-const users = new DB('users')
+const users = new DB('users');
+const {signUpSchema, logInSchema} = require('../dto/usersSchema');
+const validator = require('../dto/validator');
 
 
-route.post('/login', (req, res, next)=>{
+route.post('/login', validator(logInSchema), (req, res, next)=>{
     const user = req.body;
     const existsUser = users.getByEmail(user.email);
     if(!existsUser){
@@ -21,7 +23,7 @@ route.post('/login', (req, res, next)=>{
     }
 
 })
-route.post('/signup', (req, res, next)=>{
+route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
     const user = req.body;
     const existsUser = users.getByEmail(user.email);
     if(!existsUser){

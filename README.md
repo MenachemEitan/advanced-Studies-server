@@ -10,3 +10,5 @@ npm i router
 npm i cors
 
 npm i jsonwebtoken
+
+npm i yup

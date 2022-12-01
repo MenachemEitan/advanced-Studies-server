@@ -107,23 +107,26 @@ route.post('/login/submitAnswer/:id',(req, res, next)=>{
     const questionId = req.params.id;
     const {classId} = req.body;
     const user = users.getById(req.user);
-    // if(user.myClass[classId].length ===0){
-    //     user.myClass[classId] =[parseInt(questionId)]
-    // }else{
-    //     user.myClass[classId] = [...user.myClass[classId],parseInt(questionId)];
-    // }
     if(!user.myClass[classId].includes(parseInt(questionId))){
         user.myClass[classId] = [...user.myClass[classId],parseInt(questionId)];
         users.updateItem(user.id, user)
         return res.ok("Your Answer has been successfully received")
     }
-    // user.myClass[classId] = [...user.myClass[classId],parseInt(questionId)];
-    // console.log(user);
-    // users.updateItem(user.id, user)
-    // return res.ok("Your Answer has been successfully received")
     else return res.ok("You have already answered this question")
 
 } )
+
+
+route.post('/notLogin/startClass', (req, res, next)=>{
+    const {classId} = req.body;
+    let classRathing = class_rathing.get();
+    classRathing[classId] ++;
+    class_rathing.create(classRathing);
+    return res.ok(classes.getById(classId))
+
+})
+
+
 
 
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const DB = require('../lib/dbControler');
 const { jwtSing } = require('../lib/JWT');
-const { ErrItemAlreadyExists,ErrWrongPass,ErrItemDoesntExist  } = require('../lib/ResponseHandler');
+const { ErrItemAlreadyExists,ErrWrongPass,ErrItemDoesntExist, ErrNotAuth  } = require('../lib/ResponseHandler');
 const route = express.Router();
 const app = express();
 const users = new DB('users');
@@ -36,6 +36,15 @@ route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
         return res.not(ErrItemAlreadyExists("user"))
     }
     
+ })
+
+ route.get('/myClasses', (req, res, next)=>{
+    if (!req.user){
+        return res.not(ErrNotAuth());
+    }else{
+        const user = users.getById(req.user);
+        return res.ok(user.myClass)
+    }
  })
 
 

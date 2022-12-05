@@ -5,7 +5,13 @@
         "email": "menadsvfh2g@gmail.com",
         "password": 2222222234,
         "id": 1669802811295,
-        "myClass": {}
+        "myClass": {
+            "1669810790939": [
+                1669812345182,
+                1669812351640
+            ],
+            "1669822146056":[]
+        }
     },
     {
         "firstName": "menahemv",

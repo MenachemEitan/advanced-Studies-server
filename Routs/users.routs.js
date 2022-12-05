@@ -1,7 +1,7 @@
 const express = require('express');
 const DB = require('../lib/dbControler');
 const { jwtSing } = require('../lib/JWT');
-const { ErrItemAlreadyExists,ErrWrongPass,ErrItemDoesntExist, ErrNotAuth  } = require('../lib/ResponseHandler');
+const { ErrItemAlreadyExists,ErrWrongPass, ErrItemDoesntExist, ErrNotAuth  } = require('../lib/ResponseHandler');
 const route = express.Router();
 const app = express();
 const users = new DB('users');

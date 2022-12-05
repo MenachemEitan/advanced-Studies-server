@@ -126,6 +126,32 @@ route.post('/notLogin/startClass', (req, res, next)=>{
 
 })
 
+route.get('/search/get', (req, res, next)=>{
+    const textToSearchBy = req.query.text;
+    const AllField = field.get()
+    const returnList = []
+    AllField.forEach(element =>{
+        if(element.fieldName.includes(textToSearchBy)){
+            element.class.forEach(classId =>{
+                returnList.push(classes.getById(classId))
+            }
+            )
+        }   
+    });
+    if(returnList.length==0){
+        const allClass = classes.get();
+        allClass.forEach(element =>{
+            if(element.className.includes(textToSearchBy)){
+                returnList.push(element)
+            }
+        })
+    }
+    if(returnList.length==0){
+        return res.not(ErrItemDoesntExist("A field or class that matches the search term"))
+    }else 
+    return res.ok(returnList)
+})
+
 
 
 

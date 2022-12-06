@@ -2,12 +2,18 @@ const express = require('express');
 const route = express.Router();
 const app = express()
 const DB = require('../lib/dbControler');
+const multer = require('multer')
 const question = new DB('question');
 const classes = new DB('class');
 const field = new DB('field')
 const users = new DB('users')
 const class_rathing = new DB('class_reathing')
 const { ErrItemAlreadyExists, ErrItemDoesntExist } = require('../lib/ResponseHandler')
+const {uploadFile, getFileStream} = require('../DB/s3')
+const fs = require('fs')
+const util = require('util')
+const unlinkFile = util.promisify(fs.unlink)
+// const upload = require('../DB/s3')
 
 
 route.post('/addfield', (req, res, next) => {
@@ -63,6 +69,7 @@ route.get('/:id', (req, res, next) => {
 
 route.get('/question/:id', (req, res, next) => {
     const questionId = req.params.id;
+    // 
     tempQuestion = question.getById(questionId)
     if (tempQuestion) {
         return res.ok(tempQuestion)
@@ -79,77 +86,110 @@ route.get('/popularClass/get', (req, res, next) => {
     items.sort(function (first, second) {
         return second[1] - first[1];
     });
-    let returnVal =[]
+    let returnVal = []
     const tempList = items.slice(0, 5)
 
-    tempList.forEach(element =>returnVal.push(classes.getById(parseInt(element[0]))) )
+    tempList.forEach(element => returnVal.push(classes.getById(parseInt(element[0]))))
     return res.ok(returnVal)
 })
 
-route.post('/login/startClass', (req, res, next)=>{
-    const {classId} = req.body;
+route.post('/login/startClass', (req, res, next) => {
+    const { classId } = req.body;
     const user = users.getById(req.user)
-    if(!user.myClass[classId]){
+    if (!user.myClass[classId]) {
         let classRathing = class_rathing.get();
         console.log("classId ", classId);
-        classRathing[classId] ++;
-        user.myClass[classId]=[]
+        classRathing[classId]++;
+        user.myClass[classId] = []
         users.updateItem(user.id, user);
         class_rathing.create(classRathing);
         return res.ok(classes.getById(classId))
-    } else{
+    } else {
         const theClass = classes.getById(classId);
-        return res.ok([theClass,user.myClass[classId]])
+        return res.ok([theClass, user.myClass[classId]])
     }
 })
 
-route.post('/login/submitAnswer/:id',(req, res, next)=>{
+route.post('/login/submitAnswer/:id', (req, res, next) => {
     const questionId = req.params.id;
-    const {classId} = req.body;
+    const { classId } = req.body;
     const user = users.getById(req.user);
-    if(!user.myClass[classId].includes(parseInt(questionId))){
-        user.myClass[classId] = [...user.myClass[classId],parseInt(questionId)];
+    if (!user.myClass[classId].includes(parseInt(questionId))) {
+        user.myClass[classId] = [...user.myClass[classId], parseInt(questionId)];
         users.updateItem(user.id, user)
         return res.ok("Your Answer has been successfully received")
     }
     else return res.ok("You have already answered this question")
 
-} )
-
-
-route.post('/notLogin/startClass', (req, res, next)=>{
-    const {classId} = req.body;
-    let classRathing = class_rathing.get();
-    classRathing[classId] ++;
-    class_rathing.create(classRathing);
-    return res.ok(classes.getById(classId))
-
 })
 
-route.get('/search/get', (req, res, next)=>{
+
+route.post('/notLogin/startClass', (req, res, next) => {
+    const { classId } = req.body;
+    let classRathing = class_rathing.get();
+    classRathing[classId]++;
+    class_rathing.create(classRathing);
+    return res.ok(classes.getById(classId));
+})
+
+
+
+
+
+
+
+const uploads = multer({ dest:'oploads/'});
+route.post('/uploadPic/:id', uploads.single("image"), async(req, res, next) => {
+    const temQuestion = question.getById(req.params.id);
+    const file = req.file;
+    const result = await uploadFile(file);
+    await unlinkFile(file.path)
+    console.log(result);
+    temQuestion.img = result.key;
+    question.updateItem(req.params.id,temQuestion )
+    res.ok(result)
+})
+route.get('/getpic/pic/id', (req, res)=>{
+    const readStream = getFileStream('ed4b340867eba6643359ae3008902abb')
+    readStream.pipe(res)
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+route.get('/search/get', (req, res, next) => {
     const textToSearchBy = req.query.text;
     const AllField = field.get()
     const returnList = []
-    AllField.forEach(element =>{
-        if(element.fieldName.includes(textToSearchBy)){
-            element.class.forEach(classId =>{
+    AllField.forEach(element => {
+        if (element.fieldName.includes(textToSearchBy)) {
+            element.class.forEach(classId => {
                 returnList.push(classes.getById(classId))
             }
             )
-        }   
+        }
     });
-    if(returnList.length==0){
+    if (returnList.length == 0) {
         const allClass = classes.get();
-        allClass.forEach(element =>{
-            if(element.className.includes(textToSearchBy)){
+        allClass.forEach(element => {
+            if (element.className.includes(textToSearchBy)) {
                 returnList.push(element)
             }
         })
     }
-    if(returnList.length==0){
+    if (returnList.length == 0) {
         return res.not(ErrItemDoesntExist("A field or class that matches the search term"))
-    }else 
-    return res.ok(returnList)
+    } else
+        return res.ok(returnList)
 })
 
 

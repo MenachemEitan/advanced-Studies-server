@@ -9,7 +9,7 @@ const field = new DB('field')
 const users = new DB('users')
 const class_rathing = new DB('class_reathing')
 const { ErrItemAlreadyExists, ErrItemDoesntExist } = require('../lib/ResponseHandler')
-const {uploadFile, getFileStream} = require('../DB/s3')
+const {uploadFile, getFileStream} = require('../lib/s3')
 const fs = require('fs')
 const util = require('util')
 const unlinkFile = util.promisify(fs.unlink)
@@ -149,16 +149,11 @@ route.post('/uploadPic/:id', uploads.single("image"), async(req, res, next) => {
     question.updateItem(req.params.id,temQuestion )
     res.ok(result)
 })
-route.get('/getpic/pic/id', (req, res)=>{
-    const readStream = getFileStream('ed4b340867eba6643359ae3008902abb')
-    readStream.pipe(res)
+
+route.get('/getpic/pic/:id', (req, res)=>{
+    const readStream = getFileStream(req.params.id);
+    readStream.pipe(res);
 })
-
-
-
-
-
-
 
 
 

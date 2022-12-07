@@ -30,7 +30,7 @@ route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
     const user = req.body;
     const existsUser = users.getByEmail(user.email);
     if(!existsUser){
-        user.myClass={}
+        user.myClass={};
         temp = users.addItem(user)
         delete temp.password;
         return res.ok([jwtSing(temp.id), temp])

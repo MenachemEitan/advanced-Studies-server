@@ -22,4 +22,4 @@ npm i multer-s3
 
 
 to connect the app to different sql server run this line on your workbench:
-alter user  'yourUserName'@'localhost' identified with mysql_native_password by 'ypurpassword';
+"alter user  'yourUserName'@'localhost' identified with mysql_native_password by 'ypurpassword'";

@@ -19,7 +19,7 @@ route.post('/login', validator(logInSchema), (req, res, next)=>{
     }else{
         if(existsUser.password===user.password){
             delete existsUser.password;
-            return res.ok([jwtSing(existsUser.id), existsUser])
+            return res.ok([jwtSing({id:existsUser.id,permissions:existsUser.permissions }), existsUser])
         }else{
             return res.not(ErrWrongPass())
         }
@@ -31,9 +31,10 @@ route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
     const existsUser = users.getByEmail(user.email);
     if(!existsUser){
         user.myClass={};
+        user.permissions = 'user'
         temp = users.addItem(user)
         delete temp.password;
-        return res.ok([jwtSing(temp.id), temp])
+        return res.ok([jwtSing({id:temp.id,permissions:temp.permissions} ), temp])
     }else{
         return res.not(ErrItemAlreadyExists("user"))
     }
@@ -44,7 +45,7 @@ route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
     if (!req.user){
         return res.not(ErrNotAuth());
     }else{
-        const user = users.getById(req.user);
+        const user = users.getById(req.user.id);
         return res.ok(user.myClass)
     }
  })
@@ -53,7 +54,7 @@ route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
     if(!req.user){
         return res.not(ErrNotAuth())
     }else{
-        const user = users.getById(req.user);
+        const user = users.getById(req.user.id);
         const tempRecommendations = [];
         classes.get().forEach(element => {
             for(let val in element.connectivity){

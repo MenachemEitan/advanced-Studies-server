@@ -5,8 +5,8 @@ const DB = require('../lib/dbControler');
 const multer = require('multer')
 const question = new DB('question');
 const classes = new DB('class');
-const field = new DB('field')
-const users = new DB('users')
+const field = new DB('field');
+const users = new DB('users');
 const class_rathing = new DB('class_reathing')
 const { ErrItemAlreadyExists, ErrItemDoesntExist } = require('../lib/ResponseHandler')
 const {uploadFile, getFileStream} = require('../lib/s3')
@@ -87,7 +87,7 @@ route.get('/popularClass/get', (req, res, next) => {
         return second[1] - first[1];
     });
     let returnVal = []
-    const tempList = items.slice(0, 5)
+    const tempList = items.slice(0, 4)
 
     tempList.forEach(element => returnVal.push(classes.getById(parseInt(element[0]))))
     return res.ok(returnVal)
@@ -95,7 +95,7 @@ route.get('/popularClass/get', (req, res, next) => {
 
 route.post('/login/startClass', (req, res, next) => {
     const { classId } = req.body;
-    const user = users.getById(req.user)
+    const user = users.getById(req.user.id)
     if (!user.myClass[classId]) {
         let classRathing = class_rathing.get();
         console.log("classId ", classId);
@@ -113,7 +113,7 @@ route.post('/login/startClass', (req, res, next) => {
 route.post('/login/submitAnswer/:id', (req, res, next) => {
     const questionId = req.params.id;
     const { classId } = req.body;
-    const user = users.getById(req.user);
+    const user = users.getById(req.user.id);
     if (!user.myClass[classId].includes(parseInt(questionId))) {
         user.myClass[classId] = [...user.myClass[classId], parseInt(questionId)];
         users.updateItem(user.id, user)
@@ -122,8 +122,6 @@ route.post('/login/submitAnswer/:id', (req, res, next) => {
     else return res.ok("You have already answered this question")
 
 })
-
-
 route.post('/notLogin/startClass', (req, res, next) => {
     const { classId } = req.body;
     let classRathing = class_rathing.get();

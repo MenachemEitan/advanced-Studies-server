@@ -10,8 +10,8 @@
                 1669812345182,
                 1669812351640
             ],
-            "1669822146056":[]
-        }
+            "1669822146056": []
+        },"permissions": "admin"
     },
     {
         "firstName": "menahemv",
@@ -28,7 +28,7 @@
                 1669812378881,
                 1669812411295
             ]
-        }
+        },"permissions": "user"
     },
     {
         "firstName": "menahemv",
@@ -41,9 +41,9 @@
                 1669812345182,
                 1669812351640
             ],
-            "1669822146056":[],
-            "1669822266827":[]
-        }
+            "1669822146056": [],
+            "1669822266827": []
+        },"permissions": "user"
     },
     {
         "firstName": "menahemv",
@@ -58,6 +58,25 @@
                 1669812378881
             ]
         },
-        "id": 1669834658903
+        "id": 1669834658903,
+        "permissions": "user"
+    },
+    {
+        "firstName": "menahemv",
+        "lastName": "eitanv",
+        "email": "menadvscvfh2gdf@gmail.com",
+        "password": 333333333333,
+        "myClass": {},
+        "permissions": "user",
+        "id": 1670583340501
+    },
+    {
+        "firstName": "menahemv",
+        "lastName": "eitanv",
+        "email": "menadvscvfhc2gdf@gmail.com",
+        "password": 333333333333,
+        "myClass": {},
+        "permissions": "user",
+        "id": 1670583413637
     }
 ]

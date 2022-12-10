@@ -13,6 +13,8 @@ npm i jsonwebtoken
 
 npm i yup
 
+npm i mysql
+
 npm install --save multer
 
 npm i dotenv

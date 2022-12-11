@@ -11,9 +11,9 @@ const validator = require('../dto/validator');
 const { object } = require('yup');
 
 
-route.post('/login', validator(logInSchema), (req, res, next)=>{
+route.post('/login', validator(logInSchema),async (req, res, next)=>{
     const user = req.body;
-    const existsUser = users.getByEmail(user.email);
+    const existsUser =await users.getByEmail(user.email);
     if(!existsUser){
         return res.not(ErrItemDoesntExist("user"))
     }else{
@@ -26,9 +26,9 @@ route.post('/login', validator(logInSchema), (req, res, next)=>{
     }
 
 })
-route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
+route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
     const user = req.body;
-    const existsUser = users.getByEmail(user.email);
+    const existsUser =await users.getByEmail(user.email);
     if(!existsUser){
         user.myClass={};
         user.permissions = 'user'
@@ -36,25 +36,26 @@ route.post('/signup',validator(signUpSchema) ,(req, res, next)=>{
         delete temp.password;
         return res.ok([jwtSing({id:temp.id,permissions:temp.permissions} ), temp])
     }else{
+        console.log("existsUser", existsUser);
         return res.not(ErrItemAlreadyExists("user"))
     }
     
  })
 
- route.get('/myClasses', (req, res, next)=>{
+ route.get('/myClasses',async (req, res, next)=>{
     if (!req.user){
         return res.not(ErrNotAuth());
     }else{
-        const user = users.getById(req.user.id);
+        const user =await users.getById(req.user.id);
         return res.ok(user.myClass)
     }
  })
 
- route.get('/recommended',(req, res, next)=>{
+ route.get('/recommended',async(req, res, next)=>{
     if(!req.user){
         return res.not(ErrNotAuth())
     }else{
-        const user = users.getById(req.user.id);
+        const user =await users.getById(req.user.id);
         const tempRecommendations = [];
         classes.get().forEach(element => {
             for(let val in element.connectivity){

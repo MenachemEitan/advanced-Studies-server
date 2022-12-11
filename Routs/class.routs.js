@@ -16,118 +16,118 @@ const unlinkFile = util.promisify(fs.unlink)
 // const upload = require('../DB/s3')
 
 
-route.post('/addfield', (req, res, next) => {
+route.post('/addfield',async (req, res, next) => {
     const { fieldName } = req.body;
-    const existsField = field.getByFieldName(fieldName);
+    const existsField =await field.getByFieldName(fieldName);
     if (!existsField) {
-        return res.ok(field.addItem(req.body))
+        let temp = req.body;
+        temp.class = []
+        return res.ok(await field.addItem(req.body))
     } else
         return res.not(ErrItemAlreadyExists("field"))
 
 })
 
-route.post('/addclass/:fieldName', (req, res, next) => {
+route.post('/addclass/:fieldName',async (req, res, next) => {
     const { className } = req.body;
-    const existsClass = classes.getByClassName(className);
+    const existsClass =await classes.getByClassName(className);
     if (!existsClass) {
-        tempClass = classes.addItem(req.body)
-        tempField = field.getByFieldName(req.params.fieldName)
+        tempClass =await classes.addItem(req.body)
+        tempField =await field.getByFieldName(req.params.fieldName)
         if (!tempField.class) {
             tempField.class = [tempClass.id]
         } else {
             tempField.class = [...tempField.class, tempClass.id]
         }
-        field.updateItem(tempField.id, tempField)
+        await field.updateItem(tempField.id, tempField)
 
         return res.ok(tempClass)
     } else
         return res.not(ErrItemAlreadyExists("class"))
 })
 
-route.post('/addquestion/:className', (req, res, next) => {
+route.post('/addquestion/:className',async (req, res, next) => {
     const { className } = req.params;
-    const tempClass = classes.getByClassName(className);
-    const tempQuestion = question.addItem(req.body);
+    const tempClass = await classes.getByClassName(className);
+    const tempQuestion =await question.addItem(req.body);
     if (!tempClass.question) {
         tempClass.question = [tempQuestion.id]
     } else {
         tempClass.question = [...tempClass.question, tempQuestion.id]
     }
-    classes.updateItem(tempClass.id, tempClass)
+    await classes.updateItem(tempClass.id, tempClass)
     return res.ok(tempQuestion)
 })
 
 
-route.get('/:id', (req, res, next) => {
+route.get('/:id',async (req, res, next) => {
     const classId = req.params.id;
-    tempClass = classes.getById(classId)
+    tempClass =await classes.getById(classId)
     if (tempClass) {
         return res.ok(tempClass)
     } else
         return res.not(ErrItemDoesntExist('class'))
 })
 
-route.get('/question/:id', (req, res, next) => {
+route.get('/question/:id',async (req, res, next) => {
     const questionId = req.params.id;
     // 
-    tempQuestion = question.getById(questionId)
+    tempQuestion =await question.getById(questionId)
     if (tempQuestion) {
         return res.ok(tempQuestion)
     } else
         return res.not(ErrItemDoesntExist('Question'))
 })
 
-route.get('/popularClass/get', (req, res, next) => {
-    const temp = class_rathing.get()
-
+route.get('/popularClass/get',async (req, res, next) => {
+    const temp =await class_rathing.get()
     var items = Object.keys(temp).map(function (key) {
         return [key, temp[key]];
     });
     items.sort(function (first, second) {
         return second[1] - first[1];
     });
-    let returnVal = []
+    let returnVal = [];
     const tempList = items.slice(0, 4)
 
     tempList.forEach(element => returnVal.push(classes.getById(parseInt(element[0]))))
     return res.ok(returnVal)
 })
-
-route.post('/login/startClass', (req, res, next) => {
+route.post('/login/startClass',async (req, res, next) => {
     const { classId } = req.body;
-    const user = users.getById(req.user.id)
+    const user =await users.getById(req.user.id)
     if (!user.myClass[classId]) {
-        let classRathing = class_rathing.get();
+        let classRathing =await class_rathing.get();
         console.log("classId ", classId);
         classRathing[classId]++;
         user.myClass[classId] = []
-        users.updateItem(user.id, user);
-        class_rathing.create(classRathing);
-        return res.ok(classes.getById(classId))
+        await users.updateItem(user.id, user);
+        await class_rathing.updateItem(classRathing.id,classRathing );
+        return res.ok(await classes.getById(classId))
     } else {
-        const theClass = classes.getById(classId);
+        const theClass =await classes.getById(classId);
         return res.ok([theClass, user.myClass[classId]])
     }
 })
 
-route.post('/login/submitAnswer/:id', (req, res, next) => {
+route.post('/login/submitAnswer/:id',async (req, res, next) => {
     const questionId = req.params.id;
     const { classId } = req.body;
-    const user = users.getById(req.user.id);
+    const user =await users.getById(req.user.id);
     if (!user.myClass[classId].includes(parseInt(questionId))) {
         user.myClass[classId] = [...user.myClass[classId], parseInt(questionId)];
-        users.updateItem(user.id, user)
+        await users.updateItem(user.id, user)
         return res.ok("Your Answer has been successfully received")
     }
     else return res.ok("You have already answered this question")
 
 })
-route.post('/notLogin/startClass', (req, res, next) => {
+route.post('/notLogin/startClass',async (req, res, next) => {
     const { classId } = req.body;
-    let classRathing = class_rathing.get();
+    let classRathing =await class_rathing.get();
     classRathing[classId]++;
-    class_rathing.create(classRathing);
-    return res.ok(classes.getById(classId));
+    await class_rathing.updateItem(classRathing.id,classRathing );
+    return res.ok(await classes.getById(classId));
 })
 
 
@@ -144,7 +144,7 @@ route.post('/uploadPic/:id', uploads.single("image"), async(req, res, next) => {
     await unlinkFile(file.path)
     console.log(result);
     temQuestion.img = result.key;
-    question.updateItem(req.params.id,temQuestion )
+    await question.updateItem(req.params.id,temQuestion )
     res.ok(result)
 })
 
@@ -159,14 +159,14 @@ route.get('/getpic/pic/:id', (req, res)=>{
 
 
 
-route.get('/search/get', (req, res, next) => {
+route.get('/search/get',async (req, res, next) => {
     const textToSearchBy = req.query.text;
-    const AllField = field.get()
+    const AllField =await field.get()
     const returnList = []
     AllField.forEach(element => {
         if (element.fieldName.includes(textToSearchBy)) {
-            element.class.forEach(classId => {
-                returnList.push(classes.getById(classId))
+            element.class.forEach(async classId => {
+                returnList.push(await classes.getById(classId))
             }
             )
         }

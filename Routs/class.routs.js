@@ -46,23 +46,30 @@ route.post('/addclass/:fieldName',async (req, res, next) => {
         return res.not(ErrItemAlreadyExists("class"))
 })
 
+
 route.post('/addquestion/:className',async (req, res, next) => {
     const { className } = req.params;
     const tempClass = await classes.getByClassName(className);
     const tempQuestion =await question.addItem(req.body);
+    console.log("tempClass   ", tempClass);
+    if(!tempClass){
+        return res.not(ErrItemDoesntExist("class"))
+    }
     if (!tempClass.question) {
         tempClass.question = [tempQuestion.id]
     } else {
         tempClass.question = [...tempClass.question, tempQuestion.id]
     }
+    delete tempClass._id 
     await classes.updateItem(tempClass.id, tempClass)
     return res.ok(tempQuestion)
 })
 
-
 route.get('/:id',async (req, res, next) => {
     const classId = req.params.id;
+    console.log("req.params.id ", req.params.id);
     tempClass =await classes.getById(classId)
+    console.log("tempClass ", tempClass);
     if (tempClass) {
         return res.ok(tempClass)
     } else
@@ -78,6 +85,11 @@ route.get('/question/:id',async (req, res, next) => {
     } else
         return res.not(ErrItemDoesntExist('Question'))
 })
+
+
+
+// //////////////////////////////////////////////////////////
+
 
 route.get('/popularClass/get',async (req, res, next) => {
     const temp =await class_rathing.get()

@@ -9,35 +9,38 @@ const field = new DB('field');
 const users = new DB('users');
 const class_rathing = new DB('class_reathing')
 const { ErrItemAlreadyExists, ErrItemDoesntExist } = require('../lib/ResponseHandler')
-const {uploadFile, getFileStream} = require('../lib/s3')
+const { uploadFile, getFileStream } = require('../lib/s3')
 const fs = require('fs')
 const util = require('util')
 const unlinkFile = util.promisify(fs.unlink)
 // const upload = require('../DB/s3')
 
 
-route.post('/addfield',async (req, res, next) => {
+route.post('/addfield', async (req, res, next) => {
     const { fieldName } = req.body;
-    const existsField =await field.getByFieldName(fieldName);
+    const existsField = await field.getByFieldName(fieldName);
     if (!existsField) {
         let temp = req.body;
-        temp.class = []
+        temp.class = {}
         return res.ok(await field.addItem(req.body))
     } else
         return res.not(ErrItemAlreadyExists("field"))
 
 })
 
-route.post('/addclass/:fieldName',async (req, res, next) => {
+route.post('/addclass/:fieldName', async (req, res, next) => {
     const { className } = req.body;
-    const existsClass =await classes.getByClassName(className);
+    const existsClass = await classes.getByClassName(className);
     if (!existsClass) {
-        tempClass =await classes.addItem(req.body)
-        tempField =await field.getByFieldName(req.params.fieldName)
+        tempClass = await classes.addItem(req.body)
+        tempField = await field.getByFieldName(req.params.fieldName)
         if (!tempField.class) {
-            tempField.class = [tempClass.id]
+            tempField.class.add(tempClass._id)
+            // tempField.class = [tempClass.id]
         } else {
-            tempField.class = [...tempField.class, tempClass.id]
+            // tempField.class = [...tempField.class, tempClass.id]
+            tempField.class.add(tempClass._id)
+
         }
         await field.updateItem(tempField.id, tempField)
 
@@ -47,12 +50,12 @@ route.post('/addclass/:fieldName',async (req, res, next) => {
 })
 
 
-route.post('/addquestion/:className',async (req, res, next) => {
+route.post('/addquestion/:className', async (req, res, next) => {
     const { className } = req.params;
     const tempClass = await classes.getByClassName(className);
-    const tempQuestion =await question.addItem(req.body);
+    const tempQuestion = await question.addItem(req.body);
     console.log("tempClass   ", tempClass);
-    if(!tempClass){
+    if (!tempClass) {
         return res.not(ErrItemDoesntExist("class"))
     }
     if (!tempClass.question) {
@@ -60,15 +63,15 @@ route.post('/addquestion/:className',async (req, res, next) => {
     } else {
         tempClass.question = [...tempClass.question, tempQuestion.id]
     }
-    delete tempClass._id 
+    delete tempClass._id
     await classes.updateItem(tempClass.id, tempClass)
     return res.ok(tempQuestion)
 })
 
-route.get('/:id',async (req, res, next) => {
+route.get('/:id', async (req, res, next) => {
     const classId = req.params.id;
     console.log("req.params.id ", req.params.id);
-    tempClass =await classes.getById(classId)
+    tempClass = await classes.getById(classId)
     console.log("tempClass ", tempClass);
     if (tempClass) {
         return res.ok(tempClass)
@@ -76,18 +79,18 @@ route.get('/:id',async (req, res, next) => {
         return res.not(ErrItemDoesntExist('class'))
 })
 
-route.get('/question/:id',async (req, res, next) => {
+route.get('/question/:id', async (req, res, next) => {
     const questionId = req.params.id;
     // 
-    tempQuestion =await question.getById(questionId)
+    tempQuestion = await question.getById(questionId)
     if (tempQuestion) {
         return res.ok(tempQuestion)
     } else
         return res.not(ErrItemDoesntExist('Question'))
 })
 
-route.get('/popularClass/get',async (req, res, next) => {
-    const temp =await class_rathing.get()
+route.get('/popularClass/get', async (req, res, next) => {
+    const temp = await class_rathing.get()
     var items = Object.keys(temp[0]).map(function (key) {
         return [key, temp[0][key]];
     });
@@ -98,29 +101,80 @@ route.get('/popularClass/get',async (req, res, next) => {
     let returnVal = [];
     const tempList = items.slice(1, 5)
     console.log("tempList ", tempList);
-    for (let i = 0; i<tempList.length; i++){
+    for (let i = 0; i < tempList.length; i++) {
         let id = tempList[i][0]
         returnVal.push(await classes.getById(id))
     }
     return res.ok(returnVal)
 })
-route.post('/login/startClass',async (req, res, next) => {
+route.post('/login/startClass', async (req, res, next) => {
     const { classId } = req.body;
-    const user =await users.getById(req.user.id)
+    const user = await users.getById(req.user.id)
     if (!user.myClass[classId]) {
-        let classRathing =await class_rathing.get();
+        let classRathing = await class_rathing.get();
         classRathing[0][classId]++;
         user.myClass[classId] = []
         let temp = user._id
         delete user._id
         await users.updateItem(temp, user);
+        let tempClassId = classRathing[0]._id
         delete classRathing[0]._id
-        await class_rathing.updateItem(classRathing.id, classRathing[0] );
+        await class_rathing.updateItem(tempClassId, classRathing[0]);
         return res.ok(await classes.getById(classId))
     } else {
-        const theClass =await classes.getById(classId);
+        const theClass = await classes.getById(classId);
         return res.ok([theClass, user.myClass[classId]])
     }
+})
+
+
+route.post('/login/submitAnswer/:id', async (req, res, next) => {
+    const questionId = req.params.id;
+    const { classId } = req.body;
+    const user = await users.getById(req.user.id);
+    console.log("user.myClass ", user.myClass);
+    if (!user.myClass[classId].includes(questionId)) {
+        user.myClass[classId] = [...user.myClass[classId], questionId];
+        const temp = user._id
+        delete user._id
+        await users.updateItem(temp, user)
+        return res.ok("Your Answer has been successfully received")
+    }
+    else return res.ok("You have already answered this question")
+
+})
+
+
+route.post('/notLogin/startClass', async (req, res, next) => {
+    const { classId } = req.body;
+    let classRathing = await class_rathing.get();
+    console.log("classRathing.id  ", classRathing.id);
+    console.log("classRathing[0][classId] BEFOR ", classRathing[0]);
+    classRathing[0][classId]++;
+    console.log("classRathing[0][classId] AFTER ", classRathing[0]);
+    let temp = classRathing[0]._id
+    delete classRathing[0]._id
+    await class_rathing.updateItem(temp, classRathing[0]);
+    return res.ok(await classes.getById(classId));
+})
+
+const uploads = multer({ dest: 'oploads/' });
+route.post('/uploadPic/:id', uploads.single("image"), async (req, res, next) => {
+    const temQuestion = question.getById(req.params.id);
+    const file = req.file;
+    const result = await uploadFile(file);
+    await unlinkFile(file.path)
+    console.log(result);
+    temQuestion.img = result.key;
+    delete temQuestion._id
+    console.log("temQuestion  ", temQuestion);
+    await question.updateItem(req.params.id, temQuestion)
+    res.ok(result)
+})
+
+route.get('/getpic/pic/:id', (req, res) => {
+    const readStream = getFileStream(req.params.id);
+    readStream.pipe(res);
 })
 
 
@@ -141,25 +195,6 @@ route.post('/login/startClass',async (req, res, next) => {
 
 
 
-route.post('/login/submitAnswer/:id',async (req, res, next) => {
-    const questionId = req.params.id;
-    const { classId } = req.body;
-    const user =await users.getById(req.user.id);
-    if (!user.myClass[classId].includes(parseInt(questionId))) {
-        user.myClass[classId] = [...user.myClass[classId], parseInt(questionId)];
-        await users.updateItem(user.id, user)
-        return res.ok("Your Answer has been successfully received")
-    }
-    else return res.ok("You have already answered this question")
-
-})
-route.post('/notLogin/startClass',async (req, res, next) => {
-    const { classId } = req.body;
-    let classRathing =await class_rathing.get();
-    classRathing[classId]++;
-    await class_rathing.updateItem(classRathing.id,classRathing );
-    return res.ok(await classes.getById(classId));
-})
 
 
 
@@ -167,43 +202,32 @@ route.post('/notLogin/startClass',async (req, res, next) => {
 
 
 
-const uploads = multer({ dest:'oploads/'});
-route.post('/uploadPic/:id', uploads.single("image"), async(req, res, next) => {
-    const temQuestion = question.getById(req.params.id);
-    const file = req.file;
-    const result = await uploadFile(file);
-    await unlinkFile(file.path)
-    console.log(result);
-    temQuestion.img = result.key;
-    await question.updateItem(req.params.id,temQuestion )
-    res.ok(result)
-})
-
-route.get('/getpic/pic/:id', (req, res)=>{
-    const readStream = getFileStream(req.params.id);
-    readStream.pipe(res);
-})
 
 
 
 
 
 
-
-route.get('/search/get',async (req, res, next) => {
+route.get('/search/get', async (req, res, next) => {
     const textToSearchBy = req.query.text;
-    const AllField =await field.get()
+    const AllField = await field.get()
     const returnList = []
-    AllField.forEach(element => {
+    console.log("AllField  ", AllField);
+    AllField.forEach(async element => {
         if (element.fieldName.includes(textToSearchBy)) {
-            element.class.forEach(async classId => {
-                returnList.push(await classes.getById(classId))
+            // element.class.forEach(async classId => {
+            //     console.log("classId  ", classId);
+            //     returnList.push(await classes.getById(classId))
+            // }
+            // )
+            for (key in element.class) {
+                console.log("classId  ", key);
+                returnList.push(await classes.getById(key))
             }
-            )
         }
     });
     if (returnList.length == 0) {
-        const allClass = classes.get();
+        const allClass = await classes.get();
         allClass.forEach(element => {
             if (element.className.includes(textToSearchBy)) {
                 returnList.push(element)

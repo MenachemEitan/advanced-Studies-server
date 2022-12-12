@@ -19,7 +19,7 @@ route.post('/login', validator(logInSchema),async (req, res, next)=>{
     }else{
         if(existsUser.password===user.password){
             delete existsUser.password;
-            return res.ok([jwtSing({id:existsUser.id,permissions:existsUser.permissions }), existsUser])
+            return res.ok([jwtSing({id:existsUser._id,permissions:existsUser.permissions }), existsUser])
         }else{
             return res.not(ErrWrongPass())
         }
@@ -32,9 +32,9 @@ route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
     if(!existsUser){
         user.myClass={};
         user.permissions = 'user'
-        temp = users.addItem(user)
+        temp =await users.addItem(user)
         delete temp.password;
-        return res.ok([jwtSing({id:temp.id,permissions:temp.permissions} ), temp])
+        return res.ok([jwtSing({id:temp._id,permissions:temp.permissions} ), temp])
     }else{
         console.log("existsUser", existsUser);
         return res.not(ErrItemAlreadyExists("user"))

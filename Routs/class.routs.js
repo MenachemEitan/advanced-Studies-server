@@ -86,23 +86,22 @@ route.get('/question/:id',async (req, res, next) => {
         return res.not(ErrItemDoesntExist('Question'))
 })
 
-
-
-// //////////////////////////////////////////////////////////
-
-
 route.get('/popularClass/get',async (req, res, next) => {
     const temp =await class_rathing.get()
-    var items = Object.keys(temp).map(function (key) {
-        return [key, temp[key]];
+    var items = Object.keys(temp[0]).map(function (key) {
+        return [key, temp[0][key]];
     });
     items.sort(function (first, second) {
         return second[1] - first[1];
     });
+    console.log("items ", items);
     let returnVal = [];
-    const tempList = items.slice(0, 4)
-
-    tempList.forEach(element => returnVal.push(classes.getById(parseInt(element[0]))))
+    const tempList = items.slice(1, 5)
+    console.log("tempList ", tempList);
+    for (let i = 0; i<tempList.length; i++){
+        let id = tempList[i][0]
+        returnVal.push(await classes.getById(id))
+    }
     return res.ok(returnVal)
 })
 route.post('/login/startClass',async (req, res, next) => {
@@ -110,17 +109,37 @@ route.post('/login/startClass',async (req, res, next) => {
     const user =await users.getById(req.user.id)
     if (!user.myClass[classId]) {
         let classRathing =await class_rathing.get();
-        console.log("classId ", classId);
-        classRathing[classId]++;
+        classRathing[0][classId]++;
         user.myClass[classId] = []
-        await users.updateItem(user.id, user);
-        await class_rathing.updateItem(classRathing.id,classRathing );
+        let temp = user._id
+        delete user._id
+        await users.updateItem(temp, user);
+        delete classRathing[0]._id
+        await class_rathing.updateItem(classRathing.id, classRathing[0] );
         return res.ok(await classes.getById(classId))
     } else {
         const theClass =await classes.getById(classId);
         return res.ok([theClass, user.myClass[classId]])
     }
 })
+
+
+// ////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 route.post('/login/submitAnswer/:id',async (req, res, next) => {
     const questionId = req.params.id;

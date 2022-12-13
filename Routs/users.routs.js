@@ -57,7 +57,9 @@ route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
     }else{
         const user =await users.getById(req.user.id);
         const tempRecommendations = [];
-        classes.get().forEach(element => {
+        const tempClasses = await classes.get()
+        console.log(user);
+        tempClasses.forEach(element => {
             for(let val in element.connectivity){
                 if (user.myClass[val] && !user.myClass[element.id]){
                     tempRecommendations.push([element.id,element.connectivity[val]])

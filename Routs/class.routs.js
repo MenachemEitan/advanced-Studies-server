@@ -177,37 +177,6 @@ route.get('/getpic/pic/:id', (req, res) => {
     readStream.pipe(res);
 })
 
-
-// ////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 route.get('/search/get', async (req, res, next) => {
     const textToSearchBy = req.query.text;
     const AllField = await field.get()
@@ -215,13 +184,7 @@ route.get('/search/get', async (req, res, next) => {
     console.log("AllField  ", AllField);
     AllField.forEach(async element => {
         if (element.fieldName.includes(textToSearchBy)) {
-            // element.class.forEach(async classId => {
-            //     console.log("classId  ", classId);
-            //     returnList.push(await classes.getById(classId))
-            // }
-            // )
             for (key in element.class) {
-                console.log("classId  ", key);
                 returnList.push(await classes.getById(key))
             }
         }

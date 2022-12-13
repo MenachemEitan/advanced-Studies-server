@@ -160,16 +160,27 @@ route.post('/notLogin/startClass', async (req, res, next) => {
 
 const uploads = multer({ dest: 'oploads/' });
 route.post('/uploadPic/:id', uploads.single("image"), async (req, res, next) => {
-    const temQuestion = question.getById(req.params.id);
+    const {destination, name} = req.query
+    console.log(destination, name);
     const file = req.file;
     const result = await uploadFile(file);
     await unlinkFile(file.path)
     console.log(result);
-    temQuestion.img = result.key;
-    delete temQuestion._id
-    console.log("temQuestion  ", temQuestion);
-    await question.updateItem(req.params.id, temQuestion)
-    res.ok(result)
+    if(destination=="question"){
+        const temQuestion = question.getById(req.params.id);
+        temQuestion.img = result.key;
+        delete temQuestion._id
+        console.log("temQuestion  ", temQuestion);
+        await question.updateItem(req.params.id, temQuestion)
+        res.ok(result)
+    }else if(destination=="class"){
+        const tempClass = classes.getById(req.params.id);
+        tempClass[name] = result.key; 
+        delete tempClass._id
+        await classes.updateItem(req.params.id, tempClass)
+        res.ok(result)
+    }
+
 })
 
 route.get('/getpic/pic/:id', (req, res) => {

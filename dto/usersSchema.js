@@ -8,7 +8,6 @@ const signUpSchema = yup.object().shape({
     password:yup.string().required().min(8),
     nickName:yup.string()
 })
-
 const logInSchema = yup.object().shape({
     email:yup.string().email().required(),
     password: yup.string().required().min(8)

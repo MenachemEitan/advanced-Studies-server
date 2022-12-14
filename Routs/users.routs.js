@@ -9,15 +9,16 @@ const classes = new DB('class')
 const {signUpSchema, logInSchema} = require('../dto/usersSchema');
 const validator = require('../dto/validator');
 const { object } = require('yup');
+const { ObjectID } = require('bson');
 
 
 route.post('/login', validator(logInSchema),async (req, res, next)=>{
     const user = req.body;
-    const existsUser =await users.getByEmail(user.email);
+    const existsUser = await users.getByEmail(user.email);
     if(!existsUser){
         return res.not(ErrItemDoesntExist("user"))
     }else{
-        if(existsUser.password===user.password){
+        if(existsUser.password==user.password){
             delete existsUser.password;
             return res.ok([jwtSing({id:existsUser._id,permissions:existsUser.permissions }), existsUser])
         }else{
@@ -58,11 +59,13 @@ route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
         const user =await users.getById(req.user.id);
         const tempRecommendations = [];
         const tempClasses = await classes.get()
-        console.log(user);
+        console.log("user.myClass ", user.myClass);
+        // console.log(user);
         tempClasses.forEach(element => {
             for(let val in element.connectivity){
-                if (user.myClass[val] && !user.myClass[element.id]){
-                    tempRecommendations.push([element.id,element.connectivity[val]])
+                if (!user.myClass[val] && user.myClass[ObjectID(element._id).toString()]){
+                    console.log(1);
+                    tempRecommendations.push([val, element.connectivity[val]])
                 }
             }
         });
@@ -80,7 +83,13 @@ route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
           items.sort(function(first, second) {
             return second[1] - first[1];
           });
-        res.ok(items.slice(0, 5))
+          let temp = [];
+          items.slice(0, 5)
+          for (let i = 0; i<items.length; i++){
+            temp.push(await classes.getById(items[i][0]))
+          }
+          
+        res.ok(temp)
     }
     
  })

@@ -13,6 +13,7 @@ const { uploadFile, getFileStream } = require('../lib/s3')
 const fs = require('fs')
 const util = require('util')
 const unlinkFile = util.promisify(fs.unlink)
+const { ObjectId } = require('mongodb')
 // const upload = require('../DB/s3')
 
 
@@ -35,14 +36,12 @@ route.post('/addclass/:fieldName', async (req, res, next) => {
         tempClass = await classes.addItem(req.body)
         tempField = await field.getByFieldName(req.params.fieldName)
         if (!tempField.class) {
-            tempField.class.add(tempClass._id)
-            // tempField.class = [tempClass.id]
+            tempField.class = [ObjectId(tempClass._id)]
         } else {
-            // tempField.class = [...tempField.class, tempClass.id]
-            tempField.class.add(tempClass._id)
+            tempField.class = [...tempField.class, ObjectId(tempClass._id)]
 
         }
-        await field.updateItem(tempField.id, tempField)
+        await field.updateItem(tempField._id, tempField)
 
         return res.ok(tempClass)
     } else
@@ -54,25 +53,23 @@ route.post('/addquestion/:className', async (req, res, next) => {
     const { className } = req.params;
     const tempClass = await classes.getByClassName(className);
     const tempQuestion = await question.addItem(req.body);
-    console.log("tempClass   ", tempClass);
     if (!tempClass) {
         return res.not(ErrItemDoesntExist("class"))
     }
     if (!tempClass.question) {
-        tempClass.question = [tempQuestion.id]
+        tempClass.question = [ObjectId(tempQuestion._id)]
     } else {
-        tempClass.question = [...tempClass.question, tempQuestion.id]
+        tempClass.question = [...tempClass.question, ObjectId(tempQuestion._id)]
     }
+    const tempClassId = tempClass._id
     delete tempClass._id
-    await classes.updateItem(tempClass.id, tempClass)
+    await classes.updateItem(tempClassId, tempClass)
     return res.ok(tempQuestion)
 })
 
 route.get('/:id', async (req, res, next) => {
     const classId = req.params.id;
-    console.log("req.params.id ", req.params.id);
     tempClass = await classes.getById(classId)
-    console.log("tempClass ", tempClass);
     if (tempClass) {
         return res.ok(tempClass)
     } else
@@ -81,7 +78,6 @@ route.get('/:id', async (req, res, next) => {
 
 route.get('/question/:id', async (req, res, next) => {
     const questionId = req.params.id;
-    // 
     tempQuestion = await question.getById(questionId)
     if (tempQuestion) {
         return res.ok(tempQuestion)
@@ -132,7 +128,14 @@ route.post('/login/submitAnswer/:id', async (req, res, next) => {
     const questionId = req.params.id;
     const { classId } = req.body;
     const user = await users.getById(req.user.id);
-    console.log("user.myClass ", user.myClass);
+    console.log(user.myClass[classId]);
+    if (!user.myClass[classId]){
+        user.myClass[classId] = [questionId]
+        const temp = user._id
+        delete user._id
+        await users.updateItem(temp, user)
+        return res.ok("Your Answer has been successfully received")
+    }
     if (!user.myClass[classId].includes(questionId)) {
         user.myClass[classId] = [...user.myClass[classId], questionId];
         const temp = user._id
@@ -192,11 +195,11 @@ route.get('/search/get', async (req, res, next) => {
     const textToSearchBy = req.query.text;
     const AllField = await field.get()
     const returnList = []
-    console.log("AllField  ", AllField);
     AllField.forEach(async element => {
         if (element.fieldName.includes(textToSearchBy)) {
-            for (key in element.class) {
-                returnList.push(await classes.getById(key))
+            for (let i = 0; i<element.class.length; i++){
+                console.log("element.class.length[i] ",element.class[i]);
+                returnList.push(await classes.getById(element.class[i]))
             }
         }
     });
@@ -210,7 +213,9 @@ route.get('/search/get', async (req, res, next) => {
     }
     if (returnList.length == 0) {
         return res.not(ErrItemDoesntExist("A field or class that matches the search term"))
+        
     } else
+        console.log(3);
         return res.ok(returnList)
 })
 

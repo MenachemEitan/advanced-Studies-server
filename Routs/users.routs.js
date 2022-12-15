@@ -37,7 +37,6 @@ route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
         delete temp.password;
         return res.ok([jwtSing({id:temp._id,permissions:temp.permissions} ), temp])
     }else{
-        console.log("existsUser", existsUser);
         return res.not(ErrItemAlreadyExists("user"))
     }
     
@@ -59,12 +58,9 @@ route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
         const user =await users.getById(req.user.id);
         const tempRecommendations = [];
         const tempClasses = await classes.get()
-        console.log("user.myClass ", user.myClass);
-        // console.log(user);
         tempClasses.forEach(element => {
             for(let val in element.connectivity){
                 if (!user.myClass[val] && user.myClass[ObjectID(element._id).toString()]){
-                    console.log(1);
                     tempRecommendations.push([val, element.connectivity[val]])
                 }
             }

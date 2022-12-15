@@ -93,10 +93,8 @@ route.get('/popularClass/get', async (req, res, next) => {
     items.sort(function (first, second) {
         return second[1] - first[1];
     });
-    console.log("items ", items);
     let returnVal = [];
     const tempList = items.slice(1, 5)
-    console.log("tempList ", tempList);
     for (let i = 0; i < tempList.length; i++) {
         let id = tempList[i][0]
         returnVal.push(await classes.getById(id))
@@ -108,7 +106,12 @@ route.post('/login/startClass', async (req, res, next) => {
     const user = await users.getById(req.user.id)
     if (!user.myClass[classId]) {
         let classRathing = await class_rathing.get();
-        classRathing[0][classId]++;
+        if(!classRathing[0][classId]){
+            classRathing[0][classId] = 1
+        }else{
+            classRathing[0][classId]++;
+        }
+        
         user.myClass[classId] = []
         let temp = user._id
         delete user._id
@@ -128,7 +131,6 @@ route.post('/login/submitAnswer/:id', async (req, res, next) => {
     const questionId = req.params.id;
     const { classId } = req.body;
     const user = await users.getById(req.user.id);
-    console.log(user.myClass[classId]);
     if (!user.myClass[classId]){
         user.myClass[classId] = [questionId]
         const temp = user._id
@@ -151,10 +153,7 @@ route.post('/login/submitAnswer/:id', async (req, res, next) => {
 route.post('/notLogin/startClass', async (req, res, next) => {
     const { classId } = req.body;
     let classRathing = await class_rathing.get();
-    console.log("classRathing.id  ", classRathing.id);
-    console.log("classRathing[0][classId] BEFOR ", classRathing[0]);
     classRathing[0][classId]++;
-    console.log("classRathing[0][classId] AFTER ", classRathing[0]);
     let temp = classRathing[0]._id
     delete classRathing[0]._id
     await class_rathing.updateItem(temp, classRathing[0]);
@@ -164,20 +163,17 @@ route.post('/notLogin/startClass', async (req, res, next) => {
 const uploads = multer({ dest: 'oploads/' });
 route.post('/uploadPic/:id', uploads.single("image"), async (req, res, next) => {
     const {destination, name} = req.query
-    console.log(destination, name);
     const file = req.file;
     const result = await uploadFile(file);
     await unlinkFile(file.path)
-    console.log(result);
     if(destination=="question"){
-        const temQuestion = question.getById(req.params.id);
+        const temQuestion =await question.getById(req.params.id);
         temQuestion.img = result.key;
         delete temQuestion._id
-        console.log("temQuestion  ", temQuestion);
         await question.updateItem(req.params.id, temQuestion)
         res.ok(result)
     }else if(destination=="class"){
-        const tempClass = classes.getById(req.params.id);
+        const tempClass =await classes.getById(req.params.id);
         tempClass[name] = result.key; 
         delete tempClass._id
         await classes.updateItem(req.params.id, tempClass)
@@ -198,7 +194,6 @@ route.get('/search/get', async (req, res, next) => {
     AllField.forEach(async element => {
         if (element.fieldName.includes(textToSearchBy)) {
             for (let i = 0; i<element.class.length; i++){
-                console.log("element.class.length[i] ",element.class[i]);
                 returnList.push(await classes.getById(element.class[i]))
             }
         }
@@ -215,7 +210,6 @@ route.get('/search/get', async (req, res, next) => {
         return res.not(ErrItemDoesntExist("A field or class that matches the search term"))
         
     } else
-        console.log(3);
         return res.ok(returnList)
 })
 

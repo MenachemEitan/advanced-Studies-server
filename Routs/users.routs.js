@@ -61,6 +61,7 @@ route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
         tempClasses.forEach(element => {
             for(let val in element.connectivity){
                 if (!user.myClass[val] && user.myClass[ObjectID(element._id).toString()]){
+                    console.log("[val, element.connectivity[val]]", [val, element.connectivity[val]]);
                     tempRecommendations.push([val, element.connectivity[val]])
                 }
             }

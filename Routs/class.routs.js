@@ -111,7 +111,6 @@ route.post('/login/startClass', async (req, res, next) => {
         }else{
             classRathing[0][classId]++;
         }
-        
         user.myClass[classId] = []
         let temp = user._id
         delete user._id
@@ -119,7 +118,7 @@ route.post('/login/startClass', async (req, res, next) => {
         let tempClassId = classRathing[0]._id
         delete classRathing[0]._id
         await class_rathing.updateItem(tempClassId, classRathing[0]);
-        return res.ok(await classes.getById(classId))
+        return res.ok([await classes.getById(classId)])
     } else {
         const theClass = await classes.getById(classId);
         return res.ok([theClass, user.myClass[classId]])
@@ -157,8 +156,9 @@ route.post('/notLogin/startClass', async (req, res, next) => {
     let temp = classRathing[0]._id
     delete classRathing[0]._id
     await class_rathing.updateItem(temp, classRathing[0]);
-    return res.ok(await classes.getById(classId));
+    return res.ok([await classes.getById(classId)]);
 })
+
 
 const uploads = multer({ dest: 'oploads/' });
 route.post('/uploadPic/:id', uploads.single("image"), async (req, res, next) => {

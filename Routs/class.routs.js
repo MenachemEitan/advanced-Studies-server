@@ -22,7 +22,7 @@ route.post('/addfield', async (req, res, next) => {
     const existsField = await field.getByFieldName(fieldName);
     if (!existsField) {
         let temp = req.body;
-        temp.class = {}
+        temp.class = []
         return res.ok(await field.addItem(req.body))
     } else
         return res.not(ErrItemAlreadyExists("field"))

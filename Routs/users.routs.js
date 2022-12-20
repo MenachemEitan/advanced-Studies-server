@@ -29,7 +29,7 @@ route.post('/login', validator(logInSchema),async (req, res, next)=>{
 })
 route.get('/getme', async(req, res, next)=>{
     if(!req.user){
-        return res.not(ErrNotAuth)
+        return res.not(ErrNotAuth())
     }
     else{
        temp = await users.getById(req.user.id);

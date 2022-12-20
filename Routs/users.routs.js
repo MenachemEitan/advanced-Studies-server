@@ -27,6 +27,16 @@ route.post('/login', validator(logInSchema),async (req, res, next)=>{
     }
 
 })
+route.get('/getme', async(req, res, next)=>{
+    if(!req.user){
+        return res.not(ErrNotAuth)
+    }
+    else{
+       temp = await users.getById(req.user.id);
+       delete temp.password
+        return res.ok(temp)
+    }
+})
 route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
     const user = req.body;
     const existsUser =await users.getByEmail(user.email);
@@ -61,7 +71,6 @@ route.post('/signup',validator(signUpSchema) ,async(req, res, next)=>{
         tempClasses.forEach(element => {
             for(let val in element.connectivity){
                 if (!user.myClass[val] && user.myClass[ObjectID(element._id).toString()]){
-                    console.log("[val, element.connectivity[val]]", [val, element.connectivity[val]]);
                     tempRecommendations.push([val, element.connectivity[val]])
                 }
             }
